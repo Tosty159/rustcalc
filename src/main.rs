@@ -223,6 +223,14 @@ fn main() {
     loop {
         let input = get_input();
 
-        let lexer = Lexer::new(input);
+        let mut lexer = Lexer::new(input);
+
+        let mut parser = Parser::new(&mut lexer);
+
+        let ast = parser.parse();
+
+        let result = interpret(ast);
+
+        println!("{result}");
     }
 }
