@@ -29,6 +29,19 @@ fn get_input() -> String {
     check_syntax(input)
 }
 
+enum Token {
+    Number(f64),
+    Operator(char),
+    LParen,
+    RParen,
+    EOF,
+}
+
+struct Lexer {
+    source: String,
+    position: usize,
+}
+
 fn main() {
     println!("RustCalc Alpha 1.0");
     println!("Press Ctrl+c to terminate.");
