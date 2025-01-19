@@ -119,16 +119,16 @@ impl<'a> Parser<'a> {
         self.current_token = self.lexer.next_token();
     }
 
-    fn parse(&mut self) -> ASTNode {
-        self.parse_expression()
-    }
-
     fn eat(&mut self, expected: Token) {
         if self.current_token == expected {
             self.advance();
         } else {
             panic!("Expected: {expected:?}, found: {:?}", self.current_token);
         }
+    }
+
+    fn parse(&mut self) -> ASTNode {
+        self.parse_expression()
     }
 
     fn parse_expression(&mut self) -> ASTNode {
@@ -175,7 +175,10 @@ impl<'a> Parser<'a> {
 
     fn parse_factor(&mut self) -> ASTNode {
         match self.current_token {
-            Token::Number(num) => ASTNode::Number(num),
+            Token::Number(num) => {
+                self.advance();
+                ASTNode::Number(num)
+            },
             Token::Operator(op) if op == '+' || op == '-' => {
                 let operand = Box::new(self.parse_factor());
                 ASTNode::UnaryOperator { operand, op }
