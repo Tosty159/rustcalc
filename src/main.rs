@@ -1,4 +1,4 @@
-use std::io::{stdin, stdout, Write};
+use std::{io::{stdin, stdout, Write}, result};
 
 fn check_syntax(s: String) -> String {
     let mut chars = s.chars();
@@ -42,6 +42,49 @@ struct Lexer {
     position: usize,
 }
 
+impl Lexer {
+    fn new(source: String) -> Self {
+        Lexer {
+            source,
+            position: 0,
+        }
+    }
+
+    fn next_token(&mut self) -> Token {
+        while self.position < self.source.len() {
+            let ch = self.source.as_bytes()[self.position] as char;
+            self.position += 1;
+
+            return match ch {
+                ' ' | '\t' => continue,
+                '0'..='9' => self.tokenize_number(ch),
+                '+' | '-' | '*' | '/' => Token::Operator(ch),
+                '(' => Token::LParen,
+                ')' => Token::RParen,
+                _ => panic!("Unexpected character: {ch}"),
+            };
+        }
+        Token::EOF
+    }
+
+    fn tokenize_number(&mut self, first_char: char) -> Token {
+        let mut result_num = first_char.to_string();
+
+        while self.position < self.source.len() {
+            let ch = self.source.as_bytes()[self.position]  as char;
+
+            if !(ch.is_numeric() || ch == '.') {
+                break;
+            }
+
+            result_num.push(ch);
+            self.position += 1;
+        }
+
+        Token::Number(result_num.parse().unwrap())
+    }
+}
+
 fn main() {
     println!("RustCalc Alpha 1.0");
     println!("Press Ctrl+c to terminate.");
@@ -49,5 +92,7 @@ fn main() {
 
     loop {
         let input = get_input();
+
+        let lexer = Lexer::new(input);
     }
 }
