@@ -180,10 +180,12 @@ impl<'a> Parser<'a> {
                 ASTNode::Number(num)
             },
             Token::Operator(op) if op == '+' || op == '-' => {
+                self.advance();
                 let operand = Box::new(self.parse_factor());
                 ASTNode::UnaryOperator { operand, op }
             },
             Token::LParen => {
+                self.advance();
                 let node = self.parse_expression();
                 self.eat(Token::RParen);
                 node
@@ -227,12 +229,12 @@ fn main() {
     loop {
         let input = get_input();
 
-        let mut lexer = Lexer::new(input);
+        let mut lexer = Lexer::new(input.clone());
 
         let mut parser = Parser::new(&mut lexer);
 
         let ast = parser.parse();
-
+        
         let result = interpret(ast);
 
         println!("{result}");
