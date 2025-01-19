@@ -29,6 +29,7 @@ fn get_input() -> String {
     check_syntax(input)
 }
 
+#[derive(Debug, PartialEq, Clone, Copy)]
 enum Token {
     Number(f64),
     Operator(char),
