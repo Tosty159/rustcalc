@@ -1,3 +1,4 @@
+use core::panic;
 use std::{io::{stdin, stdout, Write}, result};
 
 fn check_syntax(s: String) -> String {
@@ -102,6 +103,90 @@ enum ASTNode {
 struct Parser<'a> {
     lexer: &'a mut Lexer,
     current_token: Token,
+}
+
+impl<'a> Parser<'a> {
+    fn new(lexer: &'a mut Lexer) -> Self {
+        let current_token = lexer.next_token();
+        Parser {
+            lexer,
+            current_token,
+        }
+    }
+
+    fn advance(&mut self) {
+        self.current_token = self.lexer.next_token();
+    }
+
+    fn parse(&mut self) -> ASTNode {
+        self.parse_expression()
+    }
+
+    fn eat(&mut self, expected: Token) {
+        if self.current_token == expected {
+            self.advance();
+        } else {
+            panic!("Expected: {expected:?}, found: {:?}", self.current_token);
+        }
+    }
+
+    fn parse_expression(&mut self) -> ASTNode {
+        let mut node = self.parse_term();
+
+        loop {
+            match self.current_token {
+                Token::Operator(op) if op == '+' || op == '-' => {
+                    self.advance();
+                    let rhs = Box::new(self.parse_term());
+                    node = ASTNode::BinaryOperator {
+                        lhs: Box::new(node),
+                        op,
+                        rhs,
+                    };
+                },
+                _ => break,
+            }
+        }
+
+        node
+    }
+
+    fn parse_term(&mut self) -> ASTNode {
+        let mut node = self.parse_factor();
+
+        loop {
+            match self.current_token {
+                Token::Operator(op) if op == '*' || op == '/' => {
+                    self.advance();
+                    let rhs = Box::new(self.parse_factor());
+                    node = ASTNode::BinaryOperator {
+                        lhs: Box::new(node),
+                        op,
+                        rhs,
+                    };
+                },
+                _ => break,
+            }
+        }
+
+        node
+    }
+
+    fn parse_factor(&mut self) -> ASTNode {
+        match self.current_token {
+            Token::Number(num) => ASTNode::Number(num),
+            Token::Operator(op) if op == '-' => {
+                let operand = Box::new(self.parse_factor());
+                ASTNode::UnaryOperator { operand, op }
+            },
+            Token::LParen => {
+                let node = self.parse_expression();
+                self.eat(Token::RParen);
+                node
+            },
+            _ => panic!("Unexpected token: {:?}", self.current_token),
+        }
+    }
 }
 
 fn main() {
