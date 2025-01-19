@@ -1,5 +1,17 @@
 use std::io::{stdin, stdout, Write};
 
+fn check_syntax(s: String) -> String {
+    let mut chars = s.chars();
+
+    while let Some(ch) = chars.next() {
+        if !(ch.is_whitespace() || ch.is_numeric() || ['+', '-', '*', '/', '.', '(', ')'].contains(&ch)) {
+            panic!("Unexpected character: {ch}");
+        }
+    }
+
+    s
+}
+
 fn get_input() -> String {
     let mut input = String::new();
 
@@ -14,7 +26,7 @@ fn get_input() -> String {
         input.pop();
     }
 
-    input
+    check_syntax(input)
 }
 
 fn main() {
