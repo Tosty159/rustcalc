@@ -87,6 +87,7 @@ impl Lexer {
     }
 }
 
+#[derive(Debug)]
 enum ASTNode {
     Number(f64),
     BinaryOperator {
