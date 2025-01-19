@@ -1,13 +1,17 @@
 use core::panic;
 use std::io::{stdin, stdout, Write};
+use std::collections::HashSet;
+use once_cell::sync::Lazy;
+
+static ALLOWED: Lazy<HashSet<char>> = Lazy::new(|| {
+    [' ', '\t','0', '1', '2', '3', '4', '5', '6', '7', '8', '9', '+', '-', '*', '/']
+        .into_iter()
+        .collect()
+});
 
 fn check_syntax(s: String) -> String {
-    let mut chars = s.chars();
-
-    while let Some(ch) = chars.next() {
-        if !(ch.is_whitespace() || ch.is_numeric() || ['+', '-', '*', '/', '.', '(', ')'].contains(&ch)) {
-            panic!("Unexpected character: {ch}");
-        }
+    if let Some(invalid) = s.chars().find(|ch| !ALLOWED.contains(&ch)) {
+        panic!("Invalid character: {invalid}");
     }
 
     s
