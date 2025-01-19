@@ -1,5 +1,5 @@
 use core::panic;
-use std::{io::{stdin, stdout, Write}, result};
+use std::io::{stdin, stdout, Write};
 
 fn check_syntax(s: String) -> String {
     let mut chars = s.chars();
