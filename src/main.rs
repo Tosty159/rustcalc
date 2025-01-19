@@ -85,6 +85,24 @@ impl Lexer {
     }
 }
 
+enum ASTNode {
+    Number(f64),
+    BinaryOperator {
+        lhs: Box<ASTNode>,
+        op: char,
+        rhs: Box<ASTNode>
+    },
+    UnaryOperator {
+        operand: Box<ASTNode>,
+        op: char,
+    },
+}
+
+struct Parser<'a> {
+    lexer: &'a mut Lexer,
+    current_token: Token,
+}
+
 fn main() {
     println!("RustCalc Alpha 1.0");
     println!("Press Ctrl+c to terminate.");
