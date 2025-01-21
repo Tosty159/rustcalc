@@ -40,7 +40,8 @@ fn get_input() -> String {
             _ => {} // Ignore invalid keys
         }
     }
-    write!(stdout, "\n").unwrap();
+    println!();
+    write!(stdout, "\r\x1B[K").unwrap();
     stdout.flush().unwrap();
 
     input
