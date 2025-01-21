@@ -1,5 +1,5 @@
 use core::panic;
-use std::io::{stdin, stdout, Write};
+use std::io::{stdout, Write};
 use std::collections::HashSet;
 use once_cell::sync::Lazy;
 use termion::{raw::IntoRawMode, input::TermRead};
@@ -9,14 +9,6 @@ static ALLOWED: Lazy<HashSet<char>> = Lazy::new(|| {
         .into_iter()
         .collect()
 });
-
-fn check_syntax(s: String) -> String {
-    if let Some(invalid) = s.chars().find(|ch| !ALLOWED.contains(&ch)) {
-        panic!("Invalid character: {invalid}");
-    }
-
-    s
-}
 
 fn get_input() -> String {
     let stdin = std::io::stdin();
@@ -32,13 +24,17 @@ fn get_input() -> String {
                 input.push(c);
                 write!(stdout, "{c}").unwrap();
                 stdout.flush().unwrap();
-            }
+            },
             termion::event::Key::Backspace => {
                 if !input.is_empty() {
                     input.pop();
                     write!(stdout, "\u{8} \u{8}").unwrap();
                     stdout.flush().unwrap();
                 }
+            },
+            termion::event::Key::Char('q') => {
+                input.push('q');
+                break;
             },
             termion::event::Key::Char('\n') => break,
             _ => {} // Ignore invalid keys
@@ -243,11 +239,15 @@ fn interpret(ast: ASTNode) -> f64 {
 
 fn main() {
     println!("RustCalc Alpha 1.0");
-    println!("Press Ctrl+c to terminate.");
+    println!("Input 'q' to terminate.");
     println!("\n");
 
     loop {
         let input = get_input();
+
+        if let Some('q') = input.chars().next_back() {
+            break;
+        }
 
         let mut lexer = Lexer::new(input.clone());
 
