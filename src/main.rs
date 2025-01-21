@@ -238,7 +238,7 @@ fn interpret(ast: ASTNode) -> f64 {
 }
 
 fn main() {
-    println!("RustCalc Alpha 1.0");
+    println!("RustCalc Alpha 1.1");
     println!("Input 'q' to terminate.");
     println!("\n");
 
