@@ -5,7 +5,7 @@ use once_cell::sync::Lazy;
 use termion::{raw::IntoRawMode, input::TermRead};
 
 static ALLOWED: Lazy<HashSet<char>> = Lazy::new(|| {
-    [' ', '\t','0', '1', '2', '3', '4', '5', '6', '7', '8', '9', '+', '-', '*', '/', '(', ')']
+    [' ', '\t','0', '1', '2', '3', '4', '5', '6', '7', '8', '9', '+', '-', '*', '/', '^', '(', ')']
         .into_iter()
         .collect()
 });
@@ -314,6 +314,7 @@ fn interpret(ast: ASTNode) -> f64 {
                 '-' => left - right,
                 '*' => left * right,
                 '/' => left / right,
+                '^' => left.powf(right),
                 _ => panic!("Invalid binary oeprator: {op}"),
             }
         }
