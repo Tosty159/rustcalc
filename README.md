@@ -20,6 +20,6 @@ A Rust-based command-line calculator
 - Brackets: '()'
 ### Notes:
 - Make sure all open brackets are properly closed.
-- Invalid inputs will result in the program terminating on its own.
+- The program doesn't allow you to input improper syntax, so don't worry about having to delete invalid operators/symbols :p
 
 Enjoy :3
