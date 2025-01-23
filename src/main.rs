@@ -99,7 +99,7 @@ impl<'a> Lexer<'a> {
                     self.last_token = Some(token);
                     token
                 },
-                '*' | '/' => {
+                '*' | '/' | '^' => {
                     self.last_token = Some(Token::Operator(ch));
                     Token::Operator(ch)
                 },
