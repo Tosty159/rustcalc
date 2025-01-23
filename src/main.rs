@@ -58,21 +58,26 @@ enum Token {
 
 struct Lexer<'a> {
     chars: std::iter::Peekable<std::str::Chars<'a>>,
-    current_char: char,
+    current_char: Option<char>,
 }
 
-impl Lexer {
-    fn new(source: String) -> Self {
+impl<'a> Lexer<'a> {
+    fn new(source: &'a str) -> Self {
+        let mut chars = source.chars().peekable();
+        let current_char = chars.next();
         Lexer {
-            source,
-            position: 0,
+            chars,
+            current_char,
         }
     }
 
+    fn advance(&mut self) {
+        self.current_char = self.chars.next();
+    }
+
     fn next_token(&mut self) -> Token {
-        while self.position < self.source.len() {
-            let ch = self.source.as_bytes()[self.position] as char;
-            self.position += 1;
+        while let Some(ch) = self.current_char {
+            self.advance();
 
             return match ch {
                 ' ' | '\t' => continue,
@@ -89,15 +94,14 @@ impl Lexer {
     fn tokenize_number(&mut self, first_char: char) -> Token {
         let mut result_num = first_char.to_string();
 
-        while self.position < self.source.len() {
-            let ch = self.source.as_bytes()[self.position]  as char;
+        while let Some(ch) = self.current_char {
 
             if !(ch.is_numeric() || ch == '.') {
                 break;
             }
 
             result_num.push(ch);
-            self.position += 1;
+            self.advance();
         }
 
         Token::Number(result_num.parse().unwrap())
