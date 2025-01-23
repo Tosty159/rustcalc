@@ -254,7 +254,7 @@ fn main() {
             break;
         }
 
-        let mut lexer = Lexer::new(input.clone());
+        let mut lexer = Lexer::new(&input);
 
         let mut parser = Parser::new(&mut lexer);
 
