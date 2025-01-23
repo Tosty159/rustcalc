@@ -51,6 +51,7 @@ fn get_input() -> String {
 enum Token {
     Number(f64),
     Operator(char),
+    UnaryOperator(char),
     LParen,
     RParen,
     EOF,
@@ -59,6 +60,7 @@ enum Token {
 struct Lexer<'a> {
     chars: std::iter::Peekable<std::str::Chars<'a>>,
     current_char: Option<char>,
+    last_token: Option<Token>,
 }
 
 impl<'a> Lexer<'a> {
@@ -68,6 +70,7 @@ impl<'a> Lexer<'a> {
         Lexer {
             chars,
             current_char,
+            last_token: None,
         }
     }
 
