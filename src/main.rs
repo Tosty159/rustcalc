@@ -166,14 +166,6 @@ impl<'a> Parser<'a> {
         self.current_token = self.lexer.next_token();
     }
 
-    fn eat(&mut self, expected: Token) {
-        if self.current_token == expected {
-            self.advance();
-        } else {
-            panic!("Expected: {expected:?}, found: {:?}", self.current_token);
-        }
-    }
-
     fn precedence(&mut self, tkn: Token) -> u16 {
         match tkn {
             Token::Operator(op) => {
@@ -298,69 +290,6 @@ impl<'a> Parser<'a> {
         match self.rpn_to_ast(output_queue) {
             Some(node) => node,
             None => panic!("Malformed expression"),
-        }
-    }
-
-    fn parse_expression(&mut self) -> ASTNode {
-        let mut node = self.parse_term();
-
-        loop {
-            match self.current_token {
-                Token::Operator(op) if op == '+' || op == '-' => {
-                    self.advance();
-                    let rhs = Box::new(self.parse_term());
-                    node = ASTNode::BinaryOperator {
-                        lhs: Box::new(node),
-                        op,
-                        rhs,
-                    };
-                },
-                _ => break,
-            }
-        }
-
-        node
-    }
-
-    fn parse_term(&mut self) -> ASTNode {
-        let mut node = self.parse_factor();
-
-        loop {
-            match self.current_token {
-                Token::Operator(op) if op == '*' || op == '/' => {
-                    self.advance();
-                    let rhs = Box::new(self.parse_factor());
-                    node = ASTNode::BinaryOperator {
-                        lhs: Box::new(node),
-                        op,
-                        rhs,
-                    };
-                },
-                _ => break,
-            }
-        }
-
-        node
-    }
-
-    fn parse_factor(&mut self) -> ASTNode {
-        match self.current_token {
-            Token::Number(num) => {
-                self.advance();
-                ASTNode::Number(num)
-            },
-            Token::Operator(op) if op == '+' || op == '-' => {
-                self.advance();
-                let operand = Box::new(self.parse_factor());
-                ASTNode::UnaryOperator { operand, op }
-            },
-            Token::LParen => {
-                self.advance();
-                let node = self.parse_expression();
-                self.eat(Token::RParen);
-                node
-            },
-            _ => panic!("Unexpected token: {:?}", self.current_token),
         }
     }
 }
