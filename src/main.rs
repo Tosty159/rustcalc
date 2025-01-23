@@ -123,12 +123,12 @@ enum ASTNode {
 }
 
 struct Parser<'a> {
-    lexer: &'a mut Lexer,
+    lexer: &'a mut Lexer<'a>,
     current_token: Token,
 }
 
 impl<'a> Parser<'a> {
-    fn new(lexer: &'a mut Lexer) -> Self {
+    fn new(lexer: &'a mut Lexer<'a>) -> Self {
         let current_token = lexer.next_token();
         Parser {
             lexer,
