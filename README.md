@@ -15,7 +15,7 @@ A Rust-based command-line calculator
 4. Once the program is running, input an expression as long as it follows the following rules:
 ### Supported syntax:
 - Decimal numbers.
-- Binary operators: '+', '-', '*', '/'
+- Binary operators: '+', '-', '*', '/', '^'
 - Unary operators: '+', '-'
 - Brackets: '()'
 ### Notes:
