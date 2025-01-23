@@ -56,9 +56,9 @@ enum Token {
     EOF,
 }
 
-struct Lexer {
-    source: String,
-    position: usize,
+struct Lexer<'a> {
+    chars: std::iter::Peekable<std::str::Chars<'a>>,
+    current_char: char,
 }
 
 impl Lexer {
