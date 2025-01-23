@@ -143,8 +143,8 @@ enum ASTNode {
         rhs: Box<ASTNode>
     },
     UnaryOperator {
-        operand: Box<ASTNode>,
         op: char,
+        operand: Box<ASTNode>,
     },
 }
 
@@ -174,20 +174,32 @@ impl<'a> Parser<'a> {
         }
     }
 
-    fn precedence(&mut self, op: char) -> u16 {
-        match op {
-            '+' | '-' => 1,
-            '*' | '/' => 2,
-            '^' => 3,
+    fn precedence(&mut self, tkn: Token) -> u16 {
+        match tkn {
+            Token::Operator(op) => {
+                match op {
+                    '+' | '-' => 1,
+                    '*' | '/' => 2,
+                    '^' => 3,
+                    _ => 0,
+                }
+            },
+            Token::UnaryOperator(_) => 10,
             _ => 0,
         }
     }
 
-    fn is_left_associative(&mut self, op: char) -> bool {
-        match op {
-            '+' | '-' | '*' | '/' => true,
-            '^' => false,
-            _ => panic!("Invalid operator: {op}"),
+    fn is_left_associative(&mut self, tkn: Token) -> bool {
+        match tkn {
+            Token::Operator(op) => {
+                match op {
+                    '+' | '-' | '*' | '/' => true,
+                    '^' => false,
+                    _ => panic!("Invalid operator: {op}"),
+                }
+            },
+            Token::UnaryOperator(_) => false,
+            _ => panic!("Not an operator: {tkn:?}"),
         }
     }
 
@@ -198,13 +210,13 @@ impl<'a> Parser<'a> {
         while self.current_token != Token::EOF {
             match self.current_token {
                 Token::Number(_) => output_queue.push(self.current_token),
-                Token::Operator(op) => {
+                Token::Operator(_) => {
                     while let Some(&top_op) = operator_stack.last() {
-                        if let Token::Operator(top) = top_op {
-                            let op_precedence = self.precedence(op);
-                            let top_precedence = self.precedence(top);
+                        if matches!(top_op, Token::Operator(_) | Token::UnaryOperator(_)) {
+                            let op_precedence = self.precedence(self.current_token);
+                            let top_precedence = self.precedence(top_op);
 
-                            if top_precedence > op_precedence || (top_precedence == op_precedence && self.is_left_associative(op)) {
+                            if top_precedence > op_precedence || (top_precedence == op_precedence && self.is_left_associative(top_op)) {
                                 output_queue.push(operator_stack.pop().unwrap());
                             } else {
                                 break;
@@ -215,6 +227,7 @@ impl<'a> Parser<'a> {
                     }
                     operator_stack.push(self.current_token);
                 },
+                Token::UnaryOperator(_) => operator_stack.push(self.current_token),
                 Token::LParen => operator_stack.push(self.current_token),
                 Token::RParen => {
                     while let Some(&op) = operator_stack.last() {
@@ -259,6 +272,16 @@ impl<'a> Parser<'a> {
                         return None;
                     }
                 },
+                Token::UnaryOperator(op) => {
+                    if let Some(opr) = stack.pop() {
+                        stack.push(ASTNode::UnaryOperator {
+                            op,
+                            operand: Box::new(opr),
+                        });
+                    } else {
+                        return None;
+                    }
+                }
                 _ => {},
             }
         }
