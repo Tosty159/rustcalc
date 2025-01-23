@@ -148,8 +148,108 @@ impl<'a> Parser<'a> {
         }
     }
 
+    fn precedence(&mut self, op: char) -> u16 {
+        match op {
+            '+' | '-' => 1,
+            '*' | '/' => 2,
+            '^' => 3,
+            _ => 0,
+        }
+    }
+
+    fn is_left_associative(&mut self, op: char) -> bool {
+        match op {
+            '+' | '-' | '*' | '/' => true,
+            '^' => false,
+            _ => panic!("Invalid operator: {op}"),
+        }
+    }
+
+    fn shunting_yard(&mut self) -> Vec<Token> {
+        let mut output_queue: Vec<Token> = Vec::new();
+        let mut operator_stack: Vec<Token> = Vec::new();
+
+        while self.current_token != Token::EOF {
+            match self.current_token {
+                Token::Number(_) => output_queue.push(self.current_token),
+                Token::Operator(op) => {
+                    while let Some(&top_op) = operator_stack.last() {
+                        if let Token::Operator(top) = top_op {
+                            let op_precedence = self.precedence(op);
+                            let top_precedence = self.precedence(top);
+
+                            if top_precedence > op_precedence || (top_precedence == op_precedence && self.is_left_associative(op)) {
+                                output_queue.push(operator_stack.pop().unwrap());
+                            } else {
+                                break;
+                            }
+                        } else {
+                            break;
+                        }
+                    }
+                    operator_stack.push(self.current_token);
+                },
+                Token::LParen => operator_stack.push(self.current_token),
+                Token::RParen => {
+                    while let Some(&op) = operator_stack.last() {
+                        if op == Token::LParen {
+                            break;
+                        }
+
+                        output_queue.push(operator_stack.pop().unwrap());
+                    }
+                    if !matches!(operator_stack.pop(), Some(Token::LParen)) {
+                        panic!("Mismatched parentheses");
+                    }
+                },
+                Token::EOF => break,
+            }
+            self.advance();
+        }
+        while let Some(&op) = operator_stack.last() {
+            if op == Token::LParen {
+                panic!("Mismatched parentheses");
+            }
+            output_queue.push(operator_stack.pop().unwrap());
+        }
+
+        output_queue
+    }
+
+    fn rpn_to_ast(&mut self, rpn_tokens: Vec<Token>) -> Option<ASTNode> {
+        let mut stack: Vec<ASTNode> = Vec::new();
+
+        for token in rpn_tokens {
+            match token {
+                Token::Number(num) => stack.push(ASTNode::Number(num)),
+                Token::Operator(op) => {
+                    if let (Some(right), Some(left)) = (stack.pop(), stack.pop()) {
+                        stack.push(ASTNode::BinaryOperator {
+                            lhs: Box::new(left),
+                            op,
+                            rhs: Box::new(right),
+                        });
+                    } else {
+                        return None;
+                    }
+                },
+                _ => {},
+            }
+        }
+
+        if stack.len() == 1 {
+            Some(stack.pop().unwrap())
+        } else {
+            None // Malformed RPN
+        }
+    }
+
     fn parse(&mut self) -> ASTNode {
-        self.parse_expression()
+        let output_queue = self.shunting_yard();
+        match self.rpn_to_ast(output_queue) {
+            Some(node) => node,
+            None => panic!("Malformed expression"),
+        }
     }
 
     fn parse_expression(&mut self) -> ASTNode {
