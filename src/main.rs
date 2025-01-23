@@ -84,10 +84,33 @@ impl<'a> Lexer<'a> {
 
             return match ch {
                 ' ' | '\t' => continue,
-                '0'..='9' => self.tokenize_number(ch),
-                '+' | '-' | '*' | '/' => Token::Operator(ch),
-                '(' => Token::LParen,
-                ')' => Token::RParen,
+                '0'..='9' => {
+                    self.last_token = Some(Token::Number(0.0));
+                    self.tokenize_number(ch)
+                },
+                '+' | '-' => {
+                    let token = if self.last_token.is_none() 
+                        || matches!(self.last_token, Some(Token::Operator(_)) | Some(Token::LParen))
+                    {
+                        Token::UnaryOperator(ch)
+                    } else {
+                        Token::Operator(ch)
+                    };
+                    self.last_token = Some(token);
+                    token
+                },
+                '*' | '/' => {
+                    self.last_token = Some(Token::Operator(ch));
+                    Token::Operator(ch)
+                },
+                '(' => {
+                    self.last_token = Some(Token::LParen);
+                    Token::LParen
+                },
+                ')' => {
+                    self.last_token = Some(Token::RParen);
+                    Token::RParen
+                },
                 _ => panic!("Unexpected character: {ch}"),
             };
         }
